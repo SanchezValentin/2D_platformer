@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PlayerMetricsData" load_steps=2 format=3 uid="uid://dh0p37pdne8c5"]
+
+[ext_resource type="Script" uid="uid://b8yfcyofv5dv8" path="res://PlayerMetricsData.gd" id="1_35qm7"]
+
+[resource]
+script = ExtResource("1_35qm7")
+speed = 80.0
+jump_velocity = -400.0
+gravity_scale = 1000.0
