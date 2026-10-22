@@ -4,6 +4,12 @@
 
 [resource]
 script = ExtResource("1_35qm7")
-speed = 80.0
-jump_velocity = -400.0
-gravity_scale = 1000.0
+speed = 150
+acceleration = 200
+air_acceleration = 800
+air_friction = 800
+jump_velocity = 450
+down_gravity = 1200
+up_gravity = 1200
+wall_jump_Y = 450
+wall_jump_X = 250
