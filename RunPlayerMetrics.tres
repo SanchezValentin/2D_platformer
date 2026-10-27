@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="PlayerMetricsData" load_steps=2 format=3 uid="uid://7pgjeelcqljd"]
+
+[ext_resource type="Script" uid="uid://b8yfcyofv5dv8" path="res://PlayerMetricsData.gd" id="1_x5062"]
+
+[resource]
+script = ExtResource("1_x5062")
+speed = 300
+acceleration = 350
+air_acceleration = 800
+friction = 3500
+air_friction = 800
+jump_velocity = 450
+down_gravity = 1200
+up_gravity = 1200
+wall_jump_Y = 450
+wall_jump_X = 250
