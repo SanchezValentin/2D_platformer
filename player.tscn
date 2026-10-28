@@ -206,7 +206,9 @@ wait_time = 0.2
 one_shot = true
 
 [node name="RunChangeDirTimer" type="Timer" parent="."]
-wait_time = 0.2
+one_shot = true
+
+[node name="AccelTimer" type="Timer" parent="."]
 one_shot = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -216,3 +218,4 @@ position_smoothing_enabled = true
 position_smoothing_speed = 10.0
 
 [connection signal="timeout" from="RunChangeDirTimer" to="." method="_on_run_change_dir_timer_timeout"]
+[connection signal="timeout" from="AccelTimer" to="." method="_on_accel_timer_timeout"]
