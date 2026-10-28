@@ -20,6 +20,7 @@ var x_dir = 1.0
 var store_dir = true
 var change_dir = true
 var can_change = false
+var is_changing = false
 
 func _ready() -> void:
 	movement_data = DEFAULT_PLAYER_METRICS
@@ -91,22 +92,25 @@ func _physics_process(delta: float) -> void:
 			var x_input = Input.get_axis("move_left", "move_rigth")
 			apply_gravity(delta)
 			
-			if x_input != x_dir and change_dir:
-				change_dir = false
-				run_change_dir_timer.start()
-			
 			if is_on_floor():
+				if x_input != x_dir and change_dir:
+					is_changing = true
+					change_dir = false
+					run_change_dir_timer.start()
+				
 				if  x_input == 0  and can_change:
 					can_change = false
 					change_dir = true
+					is_changing = false
 					state = states.STOP
 				
 				if x_input != 0 and x_dir != x_input and can_change:
 					can_change = false
 					x_dir = x_input
+					is_changing = false
 					change_dir = true
 				
-			if is_on_floor() or coyote_jump_timer.time_left > 0.0:
+			if (is_on_floor() or coyote_jump_timer.time_left > 0.0) and not is_changing:
 				if Input.is_action_just_pressed("jump"):
 					velocity.y = -movement_data.jump_velocity
 					coyote_jump_timer.stop()
