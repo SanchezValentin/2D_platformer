@@ -5,10 +5,12 @@ enum states { WALK,RUN,STOP,WALLRIDE }
 @onready var anchor: Node2D = $Anchor
 @onready var animation_player_lower: AnimationPlayer = $AnimationPlayerLower
 @onready var animation_player_upper: AnimationPlayer = $AnimationPlayerUpper
+@onready var animation_camera: AnimationPlayer = $PlayerCamera/AnimationCamera
 @onready var coyote_jump_timer: Timer = $CoyoteJumpTimer
 @onready var coyote_wall_jump_timer: Timer = $CoyoteWallJumpTimer
 @onready var run_change_dir_timer: Timer = $RunChangeDirTimer
 @onready var accel_timer: Timer = $AccelTimer
+@onready var player_camera: Camera2D = $PlayerCamera
 
 const DEFAULT_PLAYER_METRICS = preload("uid://dh0p37pdne8c5")
 const RUN_PLAYER_METRICS = preload("uid://7pgjeelcqljd")
@@ -22,6 +24,7 @@ var store_dir = true
 var change_dir = false
 var can_change = false
 var store_time = true
+var slow = false
 
 
 func _ready() -> void:
@@ -60,6 +63,8 @@ func _physics_process(delta: float) -> void:
 				animation_player_lower.play("jump")
 				animation_player_upper.play("jump")
 			
+			move_and_slide()
+			
 			var just_left_wall = was_on_wall and not is_on_wall_only()
 			if just_left_wall:
 				coyote_wall_jump_timer.start()
@@ -82,13 +87,17 @@ func _physics_process(delta: float) -> void:
 					if accel_timer.time_left > 0.0 and accel_timer.time_left < 1.0:
 						accel_timer.stop()
 						run_count += 1
+						if run_count <= 2:
+							animation_camera.play("accelerate")
 						print(run_count)
 						store_time = true
+						
 				elif x_dir != x_input :
 					run_count = 0
 					store_dir = true
 				
 			if run_count >= 3 and x_input != 0:
+				animation_camera.play("RunStateTransition")
 				x_dir = x_input
 				run_count = 0
 				movement_data = RUN_PLAYER_METRICS
@@ -96,53 +105,66 @@ func _physics_process(delta: float) -> void:
 				state = states.RUN
 	
 		states.RUN:
-			
-			if change_dir:
+			# if player ask to change direction launch timer
+			if change_dir and accel_timer.is_stopped(): 
 				accel_timer.start()
-				
+			
 			if is_on_floor():
+				
+				# if x_input = direction and not changing direction than move forward
+				if x_input == x_dir and change_dir == false:
+					accelerate_horizontaly(x_dir, delta)
+					anchor.scale.x = sign(x_dir)
+				
+				# if player want to change direction => check if input is on purpose
 				if x_input != x_dir and not change_dir:
 					change_dir = true
 					run_change_dir_timer.start()
 				
+				# if change of direction and no x_input => go on stop state
 				if  x_input == 0 and can_change:
 					can_change = false
 					change_dir = false
+					animation_camera.play("SlowDown")
 					state = states.STOP
 				
+				# if change of direction and button pushed whilde change direction timer on than direction = x_input
 				if x_input != 0 and x_dir != x_input and can_change:
-					can_change = false
 					change_dir = false
-					print("can")
-					 #if Input.is_action_just_pressed("action"):
-					if accel_timer.time_left > 0.0 and accel_timer.time_left < 1.0 :
-							print("action")
-							x_dir = x_input
-							accel_timer.stop()
-				#else : state = states.WALK
-						
+					can_change = false
+					apply_friction(delta)
+					accel_timer.start()
+					if Input.is_action_just_pressed("action") and velocity.x == 0.0 or accel_timer.time_left > 0.0:
+						store_time = false
+						x_dir = x_input
+					
+				#else : 
+					#state = states.WALK
+					#animation_camera.play("SlowDown")
+				
+			# if grounded and not changing direction than jump
 			if (is_on_floor() or coyote_jump_timer.time_left > 0.0) and not change_dir:
 				if Input.is_action_just_pressed("jump"):
 					velocity.y = -movement_data.jump_velocity
 					coyote_jump_timer.stop()
-			
+			 
 			if not is_on_floor():
 				animation_player_lower.play("jump")
 				animation_player_upper.play("jump")
 			else:
-				accelerate_horizontaly(x_dir, delta)
-				anchor.scale.x = sign(x_dir)
 				animation_player_upper.play("run")
 				animation_player_lower.play("run")
+			
+			move_and_slide()
 	
 		states.STOP:
-			if x_input == 0:
+			
 				apply_friction(delta)
 				animation_player_upper.play("stand")
 				animation_player_lower.play("stand")
 	
-	move_and_slide()
-
+		states.WALLRIDE:
+			pass
 func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var current_state_speed = movement_data.speed
 	var acceleration_amount: float = movement_data.acceleration
@@ -162,10 +184,13 @@ func apply_gravity(delta) -> void:
 			velocity.y += movement_data.down_gravity * delta 
 
 func _on_run_change_dir_timer_timeout() -> void:
+	# if input is maintained than bool becomes true and change direction allowed
 	can_change = true
 	run_change_dir_timer.stop()
 
 func _on_accel_timer_timeout() -> void:
+	# When timer reach 0, if in Run state than velocity = 0
 	store_time = true
-	print("late")
-	accel_timer.stop()
+	if state == states.RUN : 
+		pass
+		#velocity.x = 0

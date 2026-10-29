@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://df1o5q8c6mbxu"]
+[gd_scene load_steps=21 format=3 uid="uid://df1o5q8c6mbxu"]
 
 [ext_resource type="Script" uid="uid://bf8l4cumcsjoq" path="res://player.gd" id="1_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://bd23aec3cmran" path="res://ninja_upper.png" id="2_hqtel"]
@@ -99,6 +99,18 @@ tracks/0/keys = {
 "update": 1,
 "values": [6]
 }
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("PlayerCamera:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0.5, 0.5)]
+}
 
 [sub_resource type="Animation" id="Animation_n7ghd"]
 resource_name = "jump"
@@ -161,6 +173,77 @@ _data = {
 &"stand": SubResource("Animation_sweqy")
 }
 
+[sub_resource type="Animation" id="Animation_ivps1"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_urp6f"]
+resource_name = "RunStateTransition"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.5, 0.5)]
+}
+
+[sub_resource type="Animation" id="Animation_bwjto"]
+resource_name = "SlowDown"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0.5, 0.5), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_nvl01"]
+resource_name = "accelerate"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.5, 0.5), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_urp6f"]
+_data = {
+&"RESET": SubResource("Animation_ivps1"),
+&"RunStateTransition": SubResource("Animation_urp6f"),
+&"SlowDown": SubResource("Animation_bwjto"),
+&"accelerate": SubResource("Animation_nvl01")
+}
+
 [node name="Player" type="CharacterBody2D"]
 z_index = 50
 script = ExtResource("1_i3pqv")
@@ -206,16 +289,23 @@ wait_time = 0.2
 one_shot = true
 
 [node name="RunChangeDirTimer" type="Timer" parent="."]
+wait_time = 0.2
 one_shot = true
 
 [node name="AccelTimer" type="Timer" parent="."]
+wait_time = 0.2
 one_shot = true
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="PlayerCamera" type="Camera2D" parent="."]
 position = Vector2(0, -32)
 process_callback = 0
 position_smoothing_enabled = true
 position_smoothing_speed = 10.0
+
+[node name="AnimationCamera" type="AnimationPlayer" parent="PlayerCamera"]
+libraries = {
+&"": SubResource("AnimationLibrary_urp6f")
+}
 
 [connection signal="timeout" from="RunChangeDirTimer" to="." method="_on_run_change_dir_timer_timeout"]
 [connection signal="timeout" from="AccelTimer" to="." method="_on_accel_timer_timeout"]
