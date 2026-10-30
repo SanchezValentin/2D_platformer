@@ -11,6 +11,8 @@ enum states { WALK,RUN,STOP,WALLRIDE }
 @onready var run_change_dir_timer: Timer = $RunChangeDirTimer
 @onready var accel_timer: Timer = $AccelTimer
 @onready var player_camera: Camera2D = $PlayerCamera
+@onready var ray_cast_upper: RayCast2D = $Anchor/RayCastUpper
+@onready var ray_cast_lower: RayCast2D = $Anchor/RayCastLower
 
 const DEFAULT_PLAYER_METRICS = preload("uid://dh0p37pdne8c5")
 const RUN_PLAYER_METRICS = preload("uid://7pgjeelcqljd")
@@ -29,6 +31,10 @@ var slow = false
 
 func _ready() -> void:
 	movement_data = DEFAULT_PLAYER_METRICS
+	
+	animation_player_lower.current_animation_changed.connect(func(animation_name: String):
+		animation_player_upper.play(animation_name)
+		)
 
 func _physics_process(delta: float) -> void:
 	var x_input = Input.get_axis("move_left", "move_rigth")
@@ -51,17 +57,14 @@ func _physics_process(delta: float) -> void:
 			
 			if x_input == 0:
 				apply_friction(delta)
-				animation_player_upper.play("stand")
 				animation_player_lower.play("stand")
 			else:
 				accelerate_horizontaly(x_input, delta)
 				anchor.scale.x = sign(x_input)
-				animation_player_upper.play("run")
 				animation_player_lower.play("run")
 			
 			if not is_on_floor():
 				animation_player_lower.play("jump")
-				animation_player_upper.play("jump")
 			
 			move_and_slide()
 			
@@ -150,21 +153,46 @@ func _physics_process(delta: float) -> void:
 			 
 			if not is_on_floor():
 				animation_player_lower.play("jump")
-				animation_player_upper.play("jump")
 			else:
-				animation_player_upper.play("run")
 				animation_player_lower.play("run")
-			
+				
+			if should_wall_climb():
+				state = states.WALLRIDE
+				
 			move_and_slide()
 	
 		states.STOP:
 			
 				apply_friction(delta)
-				animation_player_upper.play("stand")
 				animation_player_lower.play("stand")
 	
 		states.WALLRIDE:
-			pass
+			var y_input = Input.get_axis("move_up","move_down")
+			var was_on_wall = is_on_wall_only()
+			
+			velocity.y = y_input * movement_data.speed * 0.8
+			
+			if is_on_wall_only() or coyote_wall_jump_timer.time_left > 0.0:
+				if Input.is_action_just_pressed("jump") :
+					velocity.y = -movement_data.wall_jump_Y
+					velocity.x = movement_data.wall_jump_X * get_wall_normal().x
+					coyote_wall_jump_timer.stop()
+					animation_camera.play("SlowDown")
+					state = states.WALK
+			
+			move_and_slide()
+			
+			var just_left_wall = was_on_wall and not is_on_wall_only()
+			if just_left_wall:
+				coyote_wall_jump_timer.start()
+			
+			if y_input != 0:
+				animation_player_lower.play("wallride")
+			
+			if not should_wall_climb():
+				animation_camera.play("SlowDown")
+				state = states.WALK
+			
 func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var current_state_speed = movement_data.speed
 	var acceleration_amount: float = movement_data.acceleration
@@ -194,3 +222,10 @@ func _on_accel_timer_timeout() -> void:
 	if state == states.RUN : 
 		pass
 		#velocity.x = 0
+
+func should_wall_climb() -> bool :
+	return (
+		ray_cast_upper.is_colliding()
+		and ray_cast_lower.is_colliding()
+		and not is_on_floor()
+	) 
