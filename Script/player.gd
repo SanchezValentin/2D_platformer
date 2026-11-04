@@ -61,6 +61,7 @@ func _physics_process(delta: float) -> void:
 	
 	match state:
 		states.WALK:
+			movement_data = DEFAULT_PLAYER_METRICS
 			var was_on_floor = is_on_floor()
 			var was_on_wall = is_on_wall_only()
 			
@@ -105,14 +106,14 @@ func _physics_process(delta: float) -> void:
 					if store_time and not is_accelerating:
 						store_time = false
 						accel_timer.start()
-				
+					
 				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
 					is_accelerating = true
 					if accel_timer.time_left > 0.0 and accel_timer.time_left < accel_window:
 						run_count += 1
 						if run_count <= 2:
 							animation_camera.play("accelerate")
-							print(run_count)
+						print(run_count)
 						accel_timer.start()
 						store_time = true
 					
@@ -184,12 +185,27 @@ func _physics_process(delta: float) -> void:
 			move_and_slide()
 	
 		states.STOP:
+			var is_jumping = false
+			var was_on_floor = is_on_floor()
 			
 			apply_friction(delta)
 			animation_player_lower.play("stand")
+			if is_on_floor() or coyote_jump_timer.time_left > 0.0:
+				if Input.is_action_just_pressed("jump"):
+					is_jumping = true
+					velocity.x = 0
+					velocity.y = -(movement_data.jump_velocity * 2)
+					coyote_jump_timer.stop()
+					state = states.WALK
 			#mettre un jump abusé
-			#quand velocity.x == 0 alors WALK
 			move_and_slide()
+			
+			var just_left_ledge = was_on_floor  and not is_on_floor() and velocity.y >= 0
+			if just_left_ledge:
+				coyote_jump_timer.start()
+			
+			if velocity.x == 0 and not is_jumping:
+				state = states.WALK
 	
 		states.WALLRIDE:
 			var y_input = Input.get_axis("move_up","move_down")
@@ -256,7 +272,6 @@ func _on_run_change_dir_timer_timeout() -> void:
 func _on_accel_timer_timeout() -> void:
 	store_time = true
 	if state == states.WALK:
-		print("in")
 		is_accelerating = false
 		run_count = 0
 	if state == states.RUN and changing_state:
