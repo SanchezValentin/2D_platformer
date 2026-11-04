@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cqmfi3lmedqge"
-path="res://.godot/imported/bullet.png-ff1424653e10246c11e3724e402c519e.ctex"
+uid="uid://csr85h4vooyur"
+path="res://.godot/imported/graybox.png-a48fa6a8349ecae2f54ba0523ef2ff06.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://bullet.png"
-dest_files=["res://.godot/imported/bullet.png-ff1424653e10246c11e3724e402c519e.ctex"]
+source_file="res://Sprite/graybox.png"
+dest_files=["res://.godot/imported/graybox.png-a48fa6a8349ecae2f54ba0523ef2ff06.ctex"]
 
 [params]
 

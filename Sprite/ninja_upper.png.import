@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://0jk8scaqcmdh"
-path="res://.godot/imported/ninja_lower.png-fcce2340ca722968154a0daa22dd083d.ctex"
+uid="uid://bd23aec3cmran"
+path="res://.godot/imported/ninja_upper.png-c3ca1ea7de2d90aa609eb1d1987c25f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ninja_lower.png"
-dest_files=["res://.godot/imported/ninja_lower.png-fcce2340ca722968154a0daa22dd083d.ctex"]
+source_file="res://Sprite/ninja_upper.png"
+dest_files=["res://.godot/imported/ninja_upper.png-c3ca1ea7de2d90aa609eb1d1987c25f7.ctex"]
 
 [params]
 

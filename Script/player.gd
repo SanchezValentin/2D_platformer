@@ -32,6 +32,7 @@ const RUN_PLAYER_METRICS = preload("uid://7pgjeelcqljd")
 # var to check accel condition
 var run_count = 0
 var store_time = true
+var is_accelerating = false
 
 # var to store x_input at given time
 var x_dir = 1.0
@@ -44,7 +45,6 @@ var changing_state = false
 
 #var to buffer
 var store_action = false
-
 
 func _ready() -> void:
 	movement_data = DEFAULT_PLAYER_METRICS
@@ -102,21 +102,22 @@ func _physics_process(delta: float) -> void:
 						x_dir = x_input
 						store_dir = false
 					
-					if store_time:
+					if store_time and not is_accelerating:
 						store_time = false
 						accel_timer.start()
 				
 				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
+					is_accelerating = true
 					if accel_timer.time_left > 0.0 and accel_timer.time_left < accel_window:
 						run_count += 1
 						if run_count <= 2:
 							animation_camera.play("accelerate")
-						print(run_count)
-						accel_timer.stop()
+							print(run_count)
+						accel_timer.start()
 						store_time = true
 					
-				
 				if x_dir != x_input :
+					is_accelerating = false
 					run_count = 0
 					store_dir = true
 				
@@ -125,6 +126,7 @@ func _physics_process(delta: float) -> void:
 				store_dir = true
 				x_dir = x_input
 				run_count = 0
+				is_accelerating = false
 				movement_data = RUN_PLAYER_METRICS
 				state = states.RUN
 	
@@ -154,7 +156,6 @@ func _physics_process(delta: float) -> void:
 						change_dir = true
 						run_change_dir_timer.start()
 				
-				
 				if changing_state:
 					buffer_action()
 					print("accel_window", accel_timer.time_left)
@@ -165,7 +166,6 @@ func _physics_process(delta: float) -> void:
 						accel_timer.stop()
 						action_buffer.stop()
 						x_dir = x_input
-						
 				
 			# if grounded and not changing direction than jump
 			if (is_on_floor() or coyote_jump_timer.time_left > 0.0) and not change_dir:
@@ -255,8 +255,11 @@ func _on_run_change_dir_timer_timeout() -> void:
 
 func _on_accel_timer_timeout() -> void:
 	store_time = true
+	if state == states.WALK:
+		print("in")
+		is_accelerating = false
+		run_count = 0
 	if state == states.RUN and changing_state:
-		print("too late")
 		var x_input = Input.get_axis("move_left", "move_rigth")
 		changing_state = false
 		animation_camera.play("SlowDown")

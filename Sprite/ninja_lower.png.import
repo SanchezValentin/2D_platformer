@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://csr85h4vooyur"
-path="res://.godot/imported/graybox.png-ada7bd401fa76dd2303f3ffcf7121fb6.ctex"
+uid="uid://0jk8scaqcmdh"
+path="res://.godot/imported/ninja_lower.png-4a3d9d4333e8a14497347a15681d5817.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://graybox.png"
-dest_files=["res://.godot/imported/graybox.png-ada7bd401fa76dd2303f3ffcf7121fb6.ctex"]
+source_file="res://Sprite/ninja_lower.png"
+dest_files=["res://.godot/imported/ninja_lower.png-4a3d9d4333e8a14497347a15681d5817.ctex"]
 
 [params]
 

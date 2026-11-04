@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chkwib1ut7fid"
-path="res://.godot/imported/drone_enemy.png-490c6c6ab325597c8abd142b8240d9d4.ctex"
+uid="uid://cxh4uyqu11mmh"
+path="res://.godot/imported/cannon_enemy.png-dfc898a87b00866a69949116678fb8bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://drone_enemy.png"
-dest_files=["res://.godot/imported/drone_enemy.png-490c6c6ab325597c8abd142b8240d9d4.ctex"]
+source_file="res://Sprite/cannon_enemy.png"
+dest_files=["res://.godot/imported/cannon_enemy.png-dfc898a87b00866a69949116678fb8bd.ctex"]
 
 [params]
 

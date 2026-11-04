@@ -1,9 +1,9 @@
 [gd_scene load_steps=23 format=3 uid="uid://df1o5q8c6mbxu"]
 
-[ext_resource type="Script" uid="uid://bf8l4cumcsjoq" path="res://player.gd" id="1_i3pqv"]
-[ext_resource type="Texture2D" uid="uid://bd23aec3cmran" path="res://ninja_upper.png" id="2_hqtel"]
-[ext_resource type="Resource" uid="uid://dh0p37pdne8c5" path="res://DefaultPlayerMetrics.tres" id="2_sweqy"]
-[ext_resource type="Texture2D" uid="uid://0jk8scaqcmdh" path="res://ninja_lower.png" id="3_sweqy"]
+[ext_resource type="Script" uid="uid://bf8l4cumcsjoq" path="res://Script/player.gd" id="1_i3pqv"]
+[ext_resource type="Texture2D" uid="uid://bd23aec3cmran" path="res://Sprite/ninja_upper.png" id="2_hqtel"]
+[ext_resource type="Resource" uid="uid://dh0p37pdne8c5" path="res://Ressource/DefaultPlayerMetrics.tres" id="2_sweqy"]
+[ext_resource type="Texture2D" uid="uid://0jk8scaqcmdh" path="res://Sprite/ninja_lower.png" id="3_sweqy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aqk2v"]
 size = Vector2(12, 16)
@@ -331,7 +331,7 @@ wait_time = 0.1
 one_shot = true
 
 [node name="CoyoteWallJumpTimer" type="Timer" parent="."]
-wait_time = 0.2
+wait_time = 0.1
 one_shot = true
 
 [node name="RunChangeDirTimer" type="Timer" parent="."]
