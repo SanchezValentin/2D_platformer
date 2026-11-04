@@ -13,7 +13,7 @@ config_version=5
 config/name="2D_platformer"
 run/main_scene="uid://kp362yrmve2w"
 config/features=PackedStringArray("4.5", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://Sprite/icon.svg"
 
 [display]
 
