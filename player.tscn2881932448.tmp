@@ -1,0 +1,364 @@
+[gd_scene load_steps=23 format=3 uid="uid://df1o5q8c6mbxu"]
+
+[ext_resource type="Script" uid="uid://bf8l4cumcsjoq" path="res://player.gd" id="1_i3pqv"]
+[ext_resource type="Texture2D" uid="uid://bd23aec3cmran" path="res://ninja_upper.png" id="2_hqtel"]
+[ext_resource type="Resource" uid="uid://dh0p37pdne8c5" path="res://DefaultPlayerMetrics.tres" id="2_sweqy"]
+[ext_resource type="Texture2D" uid="uid://0jk8scaqcmdh" path="res://ninja_lower.png" id="3_sweqy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aqk2v"]
+size = Vector2(12, 16)
+
+[sub_resource type="Animation" id="Animation_1jxqw"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteUpper:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_b26j0"]
+resource_name = "jump"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteUpper:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [10]
+}
+
+[sub_resource type="Animation" id="Animation_2hs0m"]
+resource_name = "run"
+length = 0.6
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteUpper:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_dw050"]
+resource_name = "stand"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteUpper:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [6]
+}
+
+[sub_resource type="Animation" id="Animation_606se"]
+resource_name = "wallride"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteUpper:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [12, 13, 14, 11]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dw050"]
+_data = {
+&"RESET": SubResource("Animation_1jxqw"),
+&"jump": SubResource("Animation_b26j0"),
+&"run": SubResource("Animation_2hs0m"),
+&"stand": SubResource("Animation_dw050"),
+&"wallride": SubResource("Animation_606se")
+}
+
+[sub_resource type="Animation" id="Animation_hqtel"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteLower:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [6]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("PlayerCamera:zoom")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0.5, 0.5)]
+}
+
+[sub_resource type="Animation" id="Animation_n7ghd"]
+resource_name = "jump"
+length = 0.1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteLower:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [10]
+}
+
+[sub_resource type="Animation" id="Animation_i3pqv"]
+resource_name = "run"
+length = 0.6
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteLower:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_sweqy"]
+resource_name = "stand"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteLower:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [6]
+}
+
+[sub_resource type="Animation" id="Animation_u1c27"]
+resource_name = "wallride"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Anchor/SpriteLower:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [12, 13, 14, 11]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_sweqy"]
+_data = {
+&"RESET": SubResource("Animation_hqtel"),
+&"jump": SubResource("Animation_n7ghd"),
+&"run": SubResource("Animation_i3pqv"),
+&"stand": SubResource("Animation_sweqy"),
+&"wallride": SubResource("Animation_u1c27")
+}
+
+[sub_resource type="Animation" id="Animation_ivps1"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_urp6f"]
+resource_name = "RunStateTransition"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.5, 0.5)]
+}
+
+[sub_resource type="Animation" id="Animation_bwjto"]
+resource_name = "SlowDown"
+length = 0.2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0.5, 0.5), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_nvl01"]
+resource_name = "accelerate"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:zoom")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(0.5, 0.5), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_urp6f"]
+_data = {
+&"RESET": SubResource("Animation_ivps1"),
+&"RunStateTransition": SubResource("Animation_urp6f"),
+&"SlowDown": SubResource("Animation_bwjto"),
+&"accelerate": SubResource("Animation_nvl01")
+}
+
+[node name="Player" type="CharacterBody2D"]
+z_index = 50
+script = ExtResource("1_i3pqv")
+accel_window = 5.0
+movement_data = ExtResource("2_sweqy")
+metadata/_edit_group_ = true
+
+[node name="Anchor" type="Node2D" parent="."]
+
+[node name="SpriteUpper" type="Sprite2D" parent="Anchor"]
+z_index = 1
+position = Vector2(-2, -13)
+texture = ExtResource("2_hqtel")
+offset = Vector2(16, 0)
+hframes = 15
+
+[node name="SpriteLower" type="Sprite2D" parent="Anchor"]
+position = Vector2(-2, -13)
+texture = ExtResource("3_sweqy")
+offset = Vector2(16, 0)
+hframes = 15
+frame = 6
+
+[node name="RayCastUpper" type="RayCast2D" parent="Anchor"]
+position = Vector2(5, -14)
+target_position = Vector2(2, 0)
+
+[node name="RayCastLower" type="RayCast2D" parent="Anchor"]
+position = Vector2(5, -14)
+target_position = Vector2(2, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_aqk2v")
+
+[node name="AnimationPlayerUpper" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_dw050")
+}
+
+[node name="AnimationPlayerLower" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_sweqy")
+}
+
+[node name="CoyoteJumpTimer" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="CoyoteWallJumpTimer" type="Timer" parent="."]
+wait_time = 0.2
+one_shot = true
+
+[node name="RunChangeDirTimer" type="Timer" parent="."]
+wait_time = 0.2
+one_shot = true
+
+[node name="AccelTimer" type="Timer" parent="."]
+wait_time = 5.0
+one_shot = true
+
+[node name="ActionBuffer" type="Timer" parent="."]
+wait_time = 5.0
+one_shot = true
+
+[node name="PlayerCamera" type="Camera2D" parent="."]
+position = Vector2(0, -32)
+process_callback = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 10.0
+
+[node name="AnimationCamera" type="AnimationPlayer" parent="PlayerCamera"]
+libraries = {
+&"": SubResource("AnimationLibrary_urp6f")
+}
+
+[connection signal="timeout" from="RunChangeDirTimer" to="." method="_on_run_change_dir_timer_timeout"]
+[connection signal="timeout" from="AccelTimer" to="." method="_on_accel_timer_timeout"]
+[connection signal="timeout" from="ActionBuffer" to="." method="_on_action_buffer_timeout"]
+[connection signal="timeout" from="ActionBuffer" to="." method="_on_accel_timer_timeout"]

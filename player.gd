@@ -2,31 +2,48 @@ extends CharacterBody2D
 
 enum states { WALK,RUN,STOP,WALLRIDE }
 
-@onready var anchor: Node2D = $Anchor
+#Animation Node
 @onready var animation_player_lower: AnimationPlayer = $AnimationPlayerLower
 @onready var animation_player_upper: AnimationPlayer = $AnimationPlayerUpper
 @onready var animation_camera: AnimationPlayer = $PlayerCamera/AnimationCamera
+
+#Timer Node
 @onready var coyote_jump_timer: Timer = $CoyoteJumpTimer
 @onready var coyote_wall_jump_timer: Timer = $CoyoteWallJumpTimer
 @onready var run_change_dir_timer: Timer = $RunChangeDirTimer
 @onready var accel_timer: Timer = $AccelTimer
+@onready var action_buffer: Timer = $ActionBuffer
+
+#Misc
 @onready var player_camera: Camera2D = $PlayerCamera
 @onready var ray_cast_upper: RayCast2D = $Anchor/RayCastUpper
 @onready var ray_cast_lower: RayCast2D = $Anchor/RayCastLower
+@onready var anchor: Node2D = $Anchor
 
+#Player Metrics
 const DEFAULT_PLAYER_METRICS = preload("uid://dh0p37pdne8c5")
 const RUN_PLAYER_METRICS = preload("uid://7pgjeelcqljd")
 
+#Public Variable
 @export var state: = states.WALK
+@export var accel_window: float = 1.0
 @export var movement_data : PlayerMetricsData
 
+# var to check accel condition
 var run_count = 0
+var store_time = true
+
+# var to store x_input at given time
 var x_dir = 1.0
+
+# var to define different condition in run state
 var store_dir = true
 var change_dir = false
 var can_change = false
-var store_time = true
-var slow = false
+var changing_state = false
+
+#var to buffer
+var store_action = false
 
 
 func _ready() -> void:
@@ -35,10 +52,13 @@ func _ready() -> void:
 	animation_player_lower.current_animation_changed.connect(func(animation_name: String):
 		animation_player_upper.play(animation_name)
 		)
+	
+	accel_timer.wait_time = accel_window
 
 func _physics_process(delta: float) -> void:
 	var x_input = Input.get_axis("move_left", "move_rigth")
 	apply_gravity(delta)
+	
 	match state:
 		states.WALK:
 			var was_on_floor = is_on_floor()
@@ -87,63 +107,65 @@ func _physics_process(delta: float) -> void:
 						accel_timer.start()
 				
 				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
-					if accel_timer.time_left > 0.0 and accel_timer.time_left < 1.0:
-						accel_timer.stop()
+					if accel_timer.time_left > 0.0 and accel_timer.time_left < accel_window:
 						run_count += 1
 						if run_count <= 2:
 							animation_camera.play("accelerate")
 						print(run_count)
+						accel_timer.stop()
 						store_time = true
-						
-				elif x_dir != x_input :
+					
+				
+				if x_dir != x_input :
 					run_count = 0
 					store_dir = true
 				
 			if run_count >= 3 and x_input != 0:
 				animation_camera.play("RunStateTransition")
+				store_dir = true
 				x_dir = x_input
 				run_count = 0
 				movement_data = RUN_PLAYER_METRICS
-				store_dir = true
 				state = states.RUN
 	
 		states.RUN:
-			# if player ask to change direction launch timer
-			if change_dir and accel_timer.is_stopped(): 
-				accel_timer.start()
-			
 			if is_on_floor():
 				
+				if can_change:
+					# if change of direction and no x_input => go on stop state
+					if  x_input == 0:
+						can_change = false
+						animation_camera.play("SlowDown")
+						state = states.STOP
+					if x_input != 0:
+						can_change = false
+						changing_state = true
+						accel_timer.start()
+						apply_friction(delta)
+				
 				# if x_input = direction and not changing direction than move forward
-				if x_input == x_dir and change_dir == false:
+				if x_input == x_dir and not change_dir:
 					accelerate_horizontaly(x_dir, delta)
 					anchor.scale.x = sign(x_dir)
 				
 				# if player want to change direction => check if input is on purpose
 				if x_input != x_dir and not change_dir:
-					change_dir = true
-					run_change_dir_timer.start()
+					if not changing_state:
+						change_dir = true
+						run_change_dir_timer.start()
 				
-				# if change of direction and no x_input => go on stop state
-				if  x_input == 0 and can_change:
-					can_change = false
-					change_dir = false
-					animation_camera.play("SlowDown")
-					state = states.STOP
 				
-				# if change of direction and button pushed whilde change direction timer on than direction = x_input
-				if x_input != 0 and x_dir != x_input and can_change:
-					change_dir = false
-					can_change = false
-					apply_friction(delta)
-					accel_timer.start()
-					if Input.is_action_just_pressed("action") and velocity.x == 0.0 or accel_timer.time_left > 0.0:
+				if changing_state:
+					buffer_action()
+					print("accel_window", accel_timer.time_left)
+					if store_action == true and accel_timer.time_left > 0.0:
+						changing_state = false
 						store_time = false
+						store_action = false
+						accel_timer.stop()
+						action_buffer.stop()
 						x_dir = x_input
-					
-				#else : 
-					#state = states.WALK
-					#animation_camera.play("SlowDown")
+						
 				
 			# if grounded and not changing direction than jump
 			if (is_on_floor() or coyote_jump_timer.time_left > 0.0) and not change_dir:
@@ -155,16 +177,19 @@ func _physics_process(delta: float) -> void:
 				animation_player_lower.play("jump")
 			else:
 				animation_player_lower.play("run")
-				
+			
 			if should_wall_climb():
 				state = states.WALLRIDE
-				
+			
 			move_and_slide()
 	
 		states.STOP:
 			
-				apply_friction(delta)
-				animation_player_lower.play("stand")
+			apply_friction(delta)
+			animation_player_lower.play("stand")
+			#mettre un jump abusé
+			#quand velocity.x == 0 alors WALK
+			move_and_slide()
 	
 		states.WALLRIDE:
 			var y_input = Input.get_axis("move_up","move_down")
@@ -192,7 +217,7 @@ func _physics_process(delta: float) -> void:
 			if not should_wall_climb():
 				animation_camera.play("SlowDown")
 				state = states.WALK
-			
+	
 func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var current_state_speed = movement_data.speed
 	var acceleration_amount: float = movement_data.acceleration
@@ -211,21 +236,32 @@ func apply_gravity(delta) -> void:
 		else:
 			velocity.y += movement_data.down_gravity * delta 
 
-func _on_run_change_dir_timer_timeout() -> void:
-	# if input is maintained than bool becomes true and change direction allowed
-	can_change = true
-	run_change_dir_timer.stop()
-
-func _on_accel_timer_timeout() -> void:
-	# When timer reach 0, if in Run state than velocity = 0
-	store_time = true
-	if state == states.RUN : 
-		pass
-		#velocity.x = 0
+func buffer_action() -> void:
+	if Input.is_action_just_pressed("action") and store_action == false :
+		store_action = true
+		action_buffer.start()
 
 func should_wall_climb() -> bool :
 	return (
 		ray_cast_upper.is_colliding()
 		and ray_cast_lower.is_colliding()
 		and not is_on_floor()
-	) 
+	)
+
+func _on_run_change_dir_timer_timeout() -> void:
+	# if input is maintained than bool becomes true and change direction allowed
+	change_dir = false
+	can_change = true
+
+func _on_accel_timer_timeout() -> void:
+	store_time = true
+	if state == states.RUN and changing_state:
+		print("too late")
+		var x_input = Input.get_axis("move_left", "move_rigth")
+		changing_state = false
+		animation_camera.play("SlowDown")
+		x_dir = x_input
+		state = states.WALK
+
+func _on_action_buffer_timeout() -> void:
+	store_action = false
