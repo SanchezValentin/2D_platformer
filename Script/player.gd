@@ -207,11 +207,15 @@ func _physics_process(delta: float) -> void:
 				state = states.WALK
 	
 		states.WALLRIDE:
+			#si aucune direction n'a été renseignée, la récupérée
+			#declencher un trigger pour récupérer la direction du wall ride
 			var y_input = Input.get_axis("move_up","move_down")
 			var was_on_wall = is_on_wall_only()
 			
+			#si la direction a été récupéré, appliqué la velocité chaque frame
 			velocity.y = y_input * movement_data.speed * 0.8
 			
+			#prevoir le cas si on jump depuis le wall ride
 			if is_on_wall_only() or coyote_wall_jump_timer.time_left > 0.0:
 				if Input.is_action_just_pressed("jump") :
 					velocity.y = -movement_data.wall_jump_Y
@@ -220,6 +224,9 @@ func _physics_process(delta: float) -> void:
 					animation_camera.play("SlowDown")
 					movement_data = DEFAULT_PLAYER_METRICS
 					state = states.WALK
+			
+			#prevoir le cas si on arrive au bout du mur
+			#distinction possible si on est en contact avec le sol (= en bas du mur) ou si on n'est pas en contact (= en haut du mur)
 			
 			move_and_slide()
 			
