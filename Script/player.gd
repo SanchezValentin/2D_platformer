@@ -11,7 +11,7 @@ enum states { WALK,RUN,STOP,WALLRIDE }
 @onready var coyote_jump_timer: Timer = $CoyoteJumpTimer
 @onready var coyote_wall_jump_timer: Timer = $CoyoteWallJumpTimer
 @onready var run_change_dir_timer: Timer = $RunChangeDirTimer
-@onready var accel_timer: Timer = $AccelTimer
+@onready var accel_signal_timer: SignalTimer = $Accel_SignalTimer
 @onready var action_buffer: Timer = $ActionBuffer
 
 #Misc
@@ -53,12 +53,11 @@ func _ready() -> void:
 		animation_player_upper.play(animation_name)
 		)
 	
-	accel_timer.wait_time = accel_window
+	accel_signal_timer.wait_time = accel_window
 
 func _physics_process(delta: float) -> void:
 	var x_input = Input.get_axis("move_left", "move_rigth")
 	apply_gravity(delta)
-	print("accel_timer :", accel_timer.time_left)
 	
 	match state:
 		states.WALK:
@@ -103,13 +102,13 @@ func _physics_process(delta: float) -> void:
 						x_dir = x_input
 						store_dir = false
 					
-					if store_time and is_on_floor():
+				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
+					if store_time:
 						print("entered")
 						store_time = false
-						accel_timer.start()
+						accel_signal_timer.start()
 					
-				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
-					if accel_timer.time_left > 0.0 and accel_timer.time_left < accel_window:
+					if not accel_signal_timer.is_stopped():
 						run_count += 1
 						if run_count <= 2:
 							animation_camera.play("accelerate")
@@ -121,7 +120,7 @@ func _physics_process(delta: float) -> void:
 					store_dir = true
 				
 				if run_count >= 3:
-					accel_timer.stop()
+					accel_signal_timer.stop()
 					animation_camera.play("RunStateTransition")
 					store_dir = true
 					store_time = true
@@ -131,7 +130,7 @@ func _physics_process(delta: float) -> void:
 					state = states.RUN
 	
 		states.RUN:
-			if is_on_floor():
+			if  is_on_floor():
 				
 				if can_change :
 					can_change = false
@@ -141,7 +140,7 @@ func _physics_process(delta: float) -> void:
 						state = states.STOP
 					if x_input != 0:
 						changing_state = true
-						accel_timer.start()
+						accel_signal_timer.start()
 						apply_friction(delta)
 				
 				# if x_input = direction and not changing direction than move forward
@@ -157,8 +156,8 @@ func _physics_process(delta: float) -> void:
 				
 				if changing_state:
 					buffer_action()
-					if store_action == true and accel_timer.time_left > 0.0:
-						accel_timer.stop()
+					if store_action == true and accel_signal_timer.time_left > 0.0:
+						accel_signal_timer.stop()
 						changing_state = false
 						store_action = false
 						action_buffer.stop()
@@ -272,7 +271,7 @@ func _on_run_change_dir_timer_timeout() -> void:
 		change_dir = false
 		can_change = true
 
-func _on_accel_timer_timeout() -> void:
+func _on_accel_signal_timer_timeout() -> void:
 	if state == states.WALK:
 		store_time = true
 		is_accelerating = false

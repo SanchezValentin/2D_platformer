@@ -1,9 +1,12 @@
-[gd_scene load_steps=23 format=3 uid="uid://df1o5q8c6mbxu"]
+[gd_scene load_steps=26 format=3 uid="uid://df1o5q8c6mbxu"]
 
 [ext_resource type="Script" uid="uid://bf8l4cumcsjoq" path="res://Script/player.gd" id="1_i3pqv"]
 [ext_resource type="Texture2D" uid="uid://bd23aec3cmran" path="res://Sprite/ninja_upper.png" id="2_hqtel"]
 [ext_resource type="Resource" uid="uid://dh0p37pdne8c5" path="res://Ressource/DefaultPlayerMetrics.tres" id="2_sweqy"]
 [ext_resource type="Texture2D" uid="uid://0jk8scaqcmdh" path="res://Sprite/ninja_lower.png" id="3_sweqy"]
+[ext_resource type="Texture2D" uid="uid://m8ql15gu4wks" path="res://Sprite/oval.png" id="5_r6jsd"]
+[ext_resource type="Script" uid="uid://d1i3m08ihdwbv" path="res://Scene/sprint_feedback.gd" id="6_p6qlh"]
+[ext_resource type="Script" uid="uid://h4t6jhar7twd" path="res://Script/signal_timer.gd" id="7_p6qlh"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_aqk2v"]
 size = Vector2(12, 16)
@@ -312,6 +315,14 @@ target_position = Vector2(2, 0)
 position = Vector2(5, -14)
 target_position = Vector2(2, 0)
 
+[node name="SprintFeedback" type="Sprite2D" parent="Anchor"]
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("5_r6jsd")
+offset = Vector2(0, -30)
+script = ExtResource("6_p6qlh")
+min_size = 0.5
+max_size = 0.75
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -8)
 shape = SubResource("RectangleShape2D_aqk2v")
@@ -338,8 +349,10 @@ one_shot = true
 wait_time = 0.2
 one_shot = true
 
-[node name="AccelTimer" type="Timer" parent="."]
+[node name="Accel_SignalTimer" type="Timer" parent="."]
 one_shot = true
+script = ExtResource("7_p6qlh")
+metadata/_custom_type_script = "uid://h4t6jhar7twd"
 
 [node name="ActionBuffer" type="Timer" parent="."]
 wait_time = 0.2
@@ -357,6 +370,6 @@ libraries = {
 }
 
 [connection signal="timeout" from="RunChangeDirTimer" to="." method="_on_run_change_dir_timer_timeout"]
-[connection signal="timeout" from="AccelTimer" to="." method="_on_accel_timer_timeout"]
+[connection signal="timeout" from="Accel_SignalTimer" to="." method="_on_accel_signal_timer_timeout"]
 [connection signal="timeout" from="ActionBuffer" to="." method="_on_action_buffer_timeout"]
 [connection signal="timeout" from="ActionBuffer" to="." method="_on_accel_timer_timeout"]
