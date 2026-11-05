@@ -23,6 +23,7 @@ enum states { WALK,RUN,STOP,WALLRIDE }
 #Player Metrics
 const DEFAULT_PLAYER_METRICS = preload("uid://dh0p37pdne8c5")
 const RUN_PLAYER_METRICS = preload("uid://7pgjeelcqljd")
+const WALLRIDE_PLAYER_METRICS = preload("uid://cyqrsovdvsigr")
 
 #Public Variable
 @export var state: = states.WALK
@@ -34,14 +35,17 @@ var run_count = 0
 var store_time = true
 var is_accelerating = false
 
-# var to store x_input at given time
+# var to store x_input and y_input at given time
 var x_dir = 1.0
+var y_dir = 1.0
 
-# var to define different condition in run state
+# var to define different condition of state machine
 var store_dir = true
 var change_dir = false
 var can_change = false
 var changing_state = false
+var just_hit_wall = false
+var chose_dir = false
 
 #var to buffer
 var store_action = false
@@ -57,10 +61,10 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	var x_input = Input.get_axis("move_left", "move_rigth")
-	apply_gravity(delta)
 	
 	match state:
 		states.WALK:
+			apply_gravity(delta)
 			var was_on_floor = is_on_floor()
 			var was_on_wall = is_on_wall_only()
 			
@@ -130,6 +134,7 @@ func _physics_process(delta: float) -> void:
 					state = states.RUN
 	
 		states.RUN:
+			apply_gravity(delta)
 			if  is_on_floor():
 				
 				if can_change :
@@ -175,13 +180,16 @@ func _physics_process(delta: float) -> void:
 				animation_player_lower.play("run")
 			
 			if should_wall_climb():
+				just_hit_wall = true
 				can_change = false
 				run_change_dir_timer.stop()
+				movement_data = WALLRIDE_PLAYER_METRICS
 				state = states.WALLRIDE
 			
 			move_and_slide()
 	
 		states.STOP:
+			apply_gravity(delta)
 			var is_jumping = false
 			var was_on_floor = is_on_floor()
 			
@@ -195,7 +203,7 @@ func _physics_process(delta: float) -> void:
 					coyote_jump_timer.stop()
 					movement_data = DEFAULT_PLAYER_METRICS
 					state = states.WALK
-			#mettre un jump abusé
+			
 			move_and_slide()
 			
 			var just_left_ledge = was_on_floor  and not is_on_floor() and velocity.y >= 0
@@ -207,13 +215,28 @@ func _physics_process(delta: float) -> void:
 				state = states.WALK
 	
 		states.WALLRIDE:
+			var y_input = Input.get_axis("move_up","move_down")
+			
+			if just_hit_wall == true:
+				just_hit_wall = false
+				accel_signal_timer.start()
+			
+			if not accel_signal_timer.is_stopped():
+				if y_input == -1:
+					y_dir = y_input
+					chose_dir = true
+					accel_signal_timer.stop()
+				
+				if y_input == 1:
+					y_dir = y_input
+					chose_dir = true
+					accel_signal_timer.stop()
+				
+			if chose_dir:
+				accelerate_verticaly(y_dir, delta)
 			#si aucune direction n'a été renseignée, la récupérée
 			#declencher un trigger pour récupérer la direction du wall ride
-			var y_input = Input.get_axis("move_up","move_down")
 			var was_on_wall = is_on_wall_only()
-			
-			#si la direction a été récupéré, appliqué la velocité chaque frame
-			velocity.y = y_input * movement_data.speed * 0.8
 			
 			#prevoir le cas si on jump depuis le wall ride
 			if is_on_wall_only() or coyote_wall_jump_timer.time_left > 0.0:
@@ -222,6 +245,7 @@ func _physics_process(delta: float) -> void:
 					velocity.x = movement_data.wall_jump_X * get_wall_normal().x
 					coyote_wall_jump_timer.stop()
 					animation_camera.play("SlowDown")
+					chose_dir = false
 					movement_data = DEFAULT_PLAYER_METRICS
 					state = states.WALK
 			
@@ -239,6 +263,7 @@ func _physics_process(delta: float) -> void:
 			
 			if not should_wall_climb():
 				animation_camera.play("SlowDown")
+				chose_dir = false
 				movement_data = DEFAULT_PLAYER_METRICS
 				state = states.WALK
 	
@@ -247,6 +272,12 @@ func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var acceleration_amount: float = movement_data.acceleration
 	if not is_on_floor(): acceleration_amount = movement_data.air_acceleration
 	velocity.x = move_toward(velocity.x, current_state_speed * horizontal_direction, acceleration_amount * delta * abs(horizontal_direction))
+
+func accelerate_verticaly(vertical_direction: float, delta: float) -> void:
+	var current_state_speed = movement_data.speed
+	var acceleration_amount: float = movement_data.acceleration
+	if not is_on_floor(): acceleration_amount = movement_data.air_acceleration
+	velocity.y = move_toward(velocity.y, current_state_speed * vertical_direction, acceleration_amount * delta * abs(vertical_direction))
 
 func apply_friction(delta) -> void :
 	var friction_amount: float = movement_data.friction
@@ -283,11 +314,17 @@ func _on_accel_signal_timer_timeout() -> void:
 		store_time = true
 		is_accelerating = false
 		run_count = 0
+	
 	if state == states.RUN and changing_state:
 		var x_input = Input.get_axis("move_left", "move_rigth")
 		changing_state = false
 		animation_camera.play("SlowDown")
 		x_dir = x_input
+		movement_data = DEFAULT_PLAYER_METRICS
+		state = states.WALK
+	
+	if state == states.WALLRIDE:
+		chose_dir = false
 		movement_data = DEFAULT_PLAYER_METRICS
 		state = states.WALK
 

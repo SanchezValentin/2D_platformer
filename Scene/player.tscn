@@ -372,4 +372,3 @@ libraries = {
 [connection signal="timeout" from="RunChangeDirTimer" to="." method="_on_run_change_dir_timer_timeout"]
 [connection signal="timeout" from="Accel_SignalTimer" to="." method="_on_accel_signal_timer_timeout"]
 [connection signal="timeout" from="ActionBuffer" to="." method="_on_action_buffer_timeout"]
-[connection signal="timeout" from="ActionBuffer" to="." method="_on_accel_timer_timeout"]

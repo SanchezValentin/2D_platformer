@@ -12,5 +12,5 @@ air_friction = 800
 jump_velocity = 450
 down_gravity = 1200
 up_gravity = 1200
-wall_jump_Y = 450
+wall_jump_Y = 350
 wall_jump_X = 250
