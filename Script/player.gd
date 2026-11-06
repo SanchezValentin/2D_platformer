@@ -37,15 +37,22 @@ var is_accelerating = false
 
 # var to store x_input and y_input at given time
 var x_dir = 1.0
+var saved_x_dir = 1.0
 var y_dir = 1.0
+var saved_y_dir = 1.0
 
 # var to define different condition of state machine
 var store_dir = true
 var change_dir = false
 var can_change = false
 var changing_state = false
+
 var just_hit_wall = false
 var chose_dir = false
+var change_y_dir = false
+var go_up = false
+var go_down = false
+var go_ground = false
 
 #var to buffer
 var store_action = false
@@ -108,7 +115,6 @@ func _physics_process(delta: float) -> void:
 					
 				if Input.is_action_just_pressed("action") and is_on_floor_only() and x_dir == x_input:
 					if store_time:
-						print("entered")
 						store_time = false
 						accel_signal_timer.start()
 					
@@ -116,7 +122,6 @@ func _physics_process(delta: float) -> void:
 						run_count += 1
 						if run_count <= 2:
 							animation_camera.play("accelerate")
-						print(run_count)
 						store_time = true
 					
 				if x_dir != x_input :
@@ -144,6 +149,7 @@ func _physics_process(delta: float) -> void:
 						animation_camera.play("SlowDown")
 						state = states.STOP
 					if x_input != 0:
+						saved_x_dir = x_input
 						changing_state = true
 						accel_signal_timer.start()
 						apply_friction(delta)
@@ -166,8 +172,8 @@ func _physics_process(delta: float) -> void:
 						changing_state = false
 						store_action = false
 						action_buffer.stop()
-						x_dir = x_input
-				
+						x_dir = saved_x_dir
+			
 			# if grounded and not changing direction than jump
 			if (is_on_floor() or coyote_jump_timer.time_left > 0.0) and not change_dir:
 				if Input.is_action_just_pressed("jump"):
@@ -217,25 +223,50 @@ func _physics_process(delta: float) -> void:
 		states.WALLRIDE:
 			var y_input = Input.get_axis("move_up","move_down")
 			
+			# Check if just collided with a wall / Set velocity at 0 and launch timer 
+			# On devras faire un visuel different pour ce check puisque le joueur doit appuyer sur haut ou bas et non action
 			if just_hit_wall == true:
+				velocity.y = 0.0
 				just_hit_wall = false
 				accel_signal_timer.start()
 			
+			
 			if not accel_signal_timer.is_stopped():
-				if y_input == -1:
-					y_dir = y_input
-					chose_dir = true
-					accel_signal_timer.stop()
+				# If Player pick up then go up and if pick down then go down
+				if not change_y_dir:
+					if y_input == -1:
+						y_dir = y_input
+						chose_dir = true
+						accel_signal_timer.stop()
+					
+					if y_input == 1:
+						y_dir = y_input
+						chose_dir = true
+						accel_signal_timer.stop()
 				
-				if y_input == 1:
-					y_dir = y_input
-					chose_dir = true
-					accel_signal_timer.stop()
+				#Check for changing direction with action
+				if change_y_dir:
+					buffer_action()
+					if store_action == true and accel_signal_timer.time_left > 0.0:
+						accel_signal_timer.stop()
+						change_y_dir = false
+						chose_dir = true
+						store_action = false
+						action_buffer.stop()
+						y_dir = saved_y_dir
 				
+			
+			#If player want to change direction initiate change check
+			if y_dir != y_input and y_input != 0:
+				saved_y_dir = y_input
+				chose_dir = false
+				change_y_dir = true
+				accel_signal_timer.start()
+			
+			# When a direction is picked go in this direction indefenitely
 			if chose_dir:
 				accelerate_verticaly(y_dir, delta)
-			#si aucune direction n'a été renseignée, la récupérée
-			#declencher un trigger pour récupérer la direction du wall ride
+			
 			var was_on_wall = is_on_wall_only()
 			
 			#prevoir le cas si on jump depuis le wall ride
@@ -252,8 +283,6 @@ func _physics_process(delta: float) -> void:
 			#prevoir le cas si on arrive au bout du mur
 			#distinction possible si on est en contact avec le sol (= en bas du mur) ou si on n'est pas en contact (= en haut du mur)
 			
-			move_and_slide()
-			
 			var just_left_wall = was_on_wall and not is_on_wall_only()
 			if just_left_wall:
 				coyote_wall_jump_timer.start()
@@ -261,11 +290,45 @@ func _physics_process(delta: float) -> void:
 			if y_input != 0:
 				animation_player_lower.play("wallride")
 			
-			if not should_wall_climb():
-				animation_camera.play("SlowDown")
+			
+			# If player arrive at upper edge
+			if not ray_cast_upper.is_colliding() and ray_cast_lower.is_colliding():
+				go_up = true
 				chose_dir = false
-				movement_data = DEFAULT_PLAYER_METRICS
-				state = states.WALK
+			
+			if go_up:
+				apply_gravity(delta)
+				animation_player_lower.play("stand")
+				velocity.y = -movement_data.wall_jump_Y
+				velocity.x = movement_data.wall_jump_X * -(get_wall_normal().x)
+			
+			
+			#If player arrive at lower edge
+			if ray_cast_upper.is_colliding() and not ray_cast_lower.is_colliding():
+				go_down = true
+				chose_dir = false
+			
+			if go_down:
+				animation_player_lower.play("stand")
+				apply_gravity(delta)
+			
+			
+			#If player arrive on ground
+			if ray_cast_upper.is_colliding() and ray_cast_lower.is_colliding() and is_on_floor():
+				go_ground = true
+				chose_dir = false
+			
+			if go_ground:
+				animation_player_lower.play("stand")
+				apply_gravity(delta)
+			
+			#if not should_wall_climb():
+				#animation_camera.play("SlowDown")
+				#chose_dir = false
+				#movement_data = DEFAULT_PLAYER_METRICS
+				#state = states.WALK
+			
+			move_and_slide()
 	
 func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var current_state_speed = movement_data.speed
@@ -283,6 +346,11 @@ func apply_friction(delta) -> void :
 	var friction_amount: float = movement_data.friction
 	if not is_on_floor(): friction_amount = movement_data.air_friction
 	velocity.x = move_toward(velocity.x, 0.0, friction_amount * delta)
+
+func apply_vertical_friction(delta) -> void :
+	var friction_amount: float = movement_data.friction
+	if not is_on_floor(): friction_amount = movement_data.air_friction
+	velocity.y = move_toward(velocity.y, 0.0, friction_amount * delta)
 
 func apply_gravity(delta) -> void:
 	if not is_on_floor():
