@@ -308,7 +308,7 @@ hframes = 15
 frame = 6
 
 [node name="RayCastUpper" type="RayCast2D" parent="Anchor"]
-position = Vector2(5, -14)
+position = Vector2(5, -15)
 target_position = Vector2(2, 0)
 
 [node name="RayCastLower" type="RayCast2D" parent="Anchor"]
