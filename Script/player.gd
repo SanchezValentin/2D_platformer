@@ -53,6 +53,8 @@ var change_y_dir = false
 var go_up = false
 var go_down = false
 var go_ground = false
+var exit_wallride = false
+
 
 #var to buffer
 var store_action = false
@@ -189,6 +191,7 @@ func _physics_process(delta: float) -> void:
 				just_hit_wall = true
 				can_change = false
 				run_change_dir_timer.stop()
+				accel_signal_timer.stop()
 				movement_data = WALLRIDE_PLAYER_METRICS
 				state = states.WALLRIDE
 			
@@ -221,6 +224,23 @@ func _physics_process(delta: float) -> void:
 				state = states.WALK
 	
 		states.WALLRIDE:
+			# When player exit wallride apply gravity, if hit ground check for action , if success go run
+			if exit_wallride:
+				apply_gravity(delta)
+				if is_on_floor():
+					if accel_signal_timer.is_stopped():
+						accel_signal_timer.start()
+					buffer_action()
+					if store_action == true and accel_signal_timer.time_left > 0.0:
+						accel_signal_timer.stop()
+						store_action = false
+						action_buffer.stop()
+						x_dir = roundi(x_input)
+						anchor.scale.x = sign(x_dir)
+						animation_camera.play("SlowDown")
+						movement_data = RUN_PLAYER_METRICS
+						state = states.RUN
+			
 			var y_input = Input.get_axis("move_up","move_down")
 			
 			# Check if just collided with a wall / Set velocity at 0 and launch timer 
@@ -229,7 +249,6 @@ func _physics_process(delta: float) -> void:
 				velocity.y = 0.0
 				just_hit_wall = false
 				accel_signal_timer.start()
-			
 			
 			if not accel_signal_timer.is_stopped():
 				# If Player pick up then go up and if pick down then go down
@@ -254,7 +273,6 @@ func _physics_process(delta: float) -> void:
 						store_action = false
 						action_buffer.stop()
 						y_dir = saved_y_dir
-				
 			
 			#If player want to change direction initiate change check
 			if y_dir != y_input and y_input != 0:
@@ -284,35 +302,28 @@ func _physics_process(delta: float) -> void:
 				animation_player_lower.play("wallride")
 			
 			# If player arrive at upper edge
-			#if not ray_cast_upper.is_colliding() and ray_cast_lower.is_colliding():
-				#go_up = true
-				#chose_dir = false
-			#
-			#if go_up:
-				#apply_gravity(delta)
-				#animation_player_lower.play("stand")
-				#if is_on_wall_only():
-					#velocity.y = -movement_data.wall_jump_Y
-					#velocity.x = movement_data.wall_jump_X * -(get_wall_normal().x)
+			if ray_cast_lower.is_colliding() and not ray_cast_upper.is_colliding():
+				chose_dir = false
+				go_up = true
+			
+			if go_up:
+				go_up = false
+				velocity.y = -movement_data.wall_jump_Y
+				exit_wallride = true
+				animation_player_lower.play("stand")
+			
+			#If player arrive at lower edge
+			if  ray_cast_upper.is_colliding() and not ray_cast_lower.is_colliding():
+				chose_dir = false
+				go_down = true
 			
 			if go_down:
+				go_down = false
+				velocity.y = movement_data.wall_jump_Y
+				exit_wallride = true
 				animation_player_lower.play("stand")
 			
 			move_and_slide()
-			#If player arrive at lower edge
-			if ray_cast_upper.is_colliding() and not ray_cast_lower.is_colliding():
-				chose_dir = false
-				go_down = true
-				print("going down")
-			
-			#If player arrive on ground
-			#if ray_cast_upper.is_colliding() and ray_cast_lower.is_colliding() and is_on_floor():
-				#go_ground = true
-				#chose_dir = false
-			#
-			#if go_ground:
-				#animation_player_lower.play("stand")
-				#apply_gravity(delta)
 			
 			#if not should_wall_climb():
 				#animation_camera.play("SlowDown")
@@ -386,6 +397,7 @@ func _on_accel_signal_timer_timeout() -> void:
 	
 	if state == states.WALLRIDE:
 		chose_dir = false
+		animation_camera.play("SlowDown")
 		movement_data = DEFAULT_PLAYER_METRICS
 		state = states.WALK
 
