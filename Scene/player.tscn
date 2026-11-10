@@ -287,6 +287,8 @@ _data = {
 
 [node name="Player" type="CharacterBody2D"]
 z_index = 50
+collision_layer = 2
+collision_mask = 5
 script = ExtResource("1_i3pqv")
 movement_data = ExtResource("2_sweqy")
 metadata/_edit_group_ = true
