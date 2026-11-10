@@ -6,11 +6,12 @@
 script = ExtResource("1_0ho2l")
 speed = 300
 acceleration = 350
-air_acceleration = 800
 friction = 500
+air_acceleration = 800
 air_friction = 800
 jump_velocity = 450
 down_gravity = 1200
 up_gravity = 1200
 wall_jump_Y = 350
-wall_jump_X = 100
+wall_jump_X = 500
+edge_jump_Y = 350
