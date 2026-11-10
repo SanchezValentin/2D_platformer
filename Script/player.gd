@@ -230,9 +230,9 @@ func _physics_process(delta: float) -> void:
 		states.WALLRIDE:
 			
 			var y_input = Input.get_axis("move_up","move_down")
-			
 			# When player exit wallride apply gravity, if hit ground check for action , if success go run
 			if exit_wallride:
+				accelerate_horizontaly(x_input,delta)
 				apply_gravity(delta)
 				if is_on_floor():
 					if accel_signal_timer.is_stopped():
@@ -355,7 +355,7 @@ func _physics_process(delta: float) -> void:
 					is_jumping = false
 				
 			move_and_slide()
-			
+	
 
 func accelerate_horizontaly(horizontal_direction: float, delta: float) -> void:
 	var current_state_speed = movement_data.speed
