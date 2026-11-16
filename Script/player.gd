@@ -156,7 +156,6 @@ func _physics_process(delta: float) -> void:
 						saved_x_dir = x_input
 						changing_state = true
 						accel_signal_timer.start()
-						apply_friction(delta)
 				
 				# if x_input = direction and not changing direction than move forward
 				if x_input == x_dir and not change_dir:
@@ -245,6 +244,7 @@ func _physics_process(delta: float) -> void:
 						x_dir = roundi(x_input)
 						if x_dir != 0:
 							anchor.scale.x = sign(x_dir)
+						exit_wallride = false
 						movement_data = RUN_PLAYER_METRICS
 						state = states.RUN
 			
@@ -286,12 +286,13 @@ func _physics_process(delta: float) -> void:
 						action_buffer.stop()
 						y_dir = saved_y_dir
 			
-			#If player want to change direction initiate change check
 			if y_dir != y_input and y_input != 0:
-				saved_y_dir = y_input
-				chose_dir = false
-				change_y_dir = true
-				accel_signal_timer.start()
+				if y_input >= 1 or y_input <= -1:
+					saved_y_dir = y_input
+					print(y_input)
+					chose_dir = false
+					change_y_dir = true
+					accel_signal_timer.start()
 			
 			# When a direction is picked go in this direction indefenitely
 			if chose_dir:
@@ -351,6 +352,7 @@ func _physics_process(delta: float) -> void:
 				just_hit_wall = true
 				apply_gravity(delta)
 				if is_on_floor():
+					animation_player_lower.play("stand")
 					exit_wallride = true
 					is_jumping = false
 				
@@ -421,6 +423,7 @@ func _on_accel_signal_timer_timeout() -> void:
 	if state == states.WALLRIDE:
 		chose_dir = false
 		animation_camera.play("SlowDown")
+		exit_wallride = false
 		movement_data = DEFAULT_PLAYER_METRICS
 		state = states.WALK
 
