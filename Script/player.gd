@@ -250,9 +250,9 @@ func _physics_process(delta: float) -> void:
 			
 			# Check if just collided with a wall / Set velocity at 0 and launch timer 
 			# On devras faire un visuel different pour ce check puisque le joueur doit appuyer sur haut ou bas et non action
-			if just_hit_wall == true and is_on_wall():
+			if just_hit_wall == true and is_on_wall() and not is_jumping:
 				current_wall_normal = get_wall_normal().x
-				x_dir = roundi(x_input)
+				x_dir = -current_wall_normal
 				if x_dir != 0:
 					anchor.scale.x = sign(x_dir)
 				elif x_dir == 0:
@@ -289,7 +289,6 @@ func _physics_process(delta: float) -> void:
 			if y_dir != y_input and y_input != 0:
 				if y_input >= 1 or y_input <= -1:
 					saved_y_dir = y_input
-					print(y_input)
 					chose_dir = false
 					change_y_dir = true
 					accel_signal_timer.start()
