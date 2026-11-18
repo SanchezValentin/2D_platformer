@@ -350,7 +350,7 @@ wait_time = 0.1
 one_shot = true
 
 [node name="RunChangeDirTimer" type="Timer" parent="."]
-wait_time = 0.2
+wait_time = 0.1
 one_shot = true
 
 [node name="Accel_SignalTimer" type="Timer" parent="."]

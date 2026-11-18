@@ -245,12 +245,13 @@ func _physics_process(delta: float) -> void:
 						if x_dir != 0:
 							anchor.scale.x = sign(x_dir)
 						exit_wallride = false
+						change_y_dir = false
 						movement_data = RUN_PLAYER_METRICS
 						state = states.RUN
 			
 			# Check if just collided with a wall / Set velocity at 0 and launch timer 
 			# On devras faire un visuel different pour ce check puisque le joueur doit appuyer sur haut ou bas et non action
-			if just_hit_wall == true and is_on_wall() and not is_jumping:
+			if just_hit_wall == true and is_on_wall():
 				current_wall_normal = get_wall_normal().x
 				x_dir = -current_wall_normal
 				if x_dir != 0:
@@ -264,6 +265,7 @@ func _physics_process(delta: float) -> void:
 			
 			if not accel_signal_timer.is_stopped():
 				# If Player pick up then go up and if pick down then go down
+				
 				if not change_y_dir:
 					if y_input == -1:
 						y_dir = y_input
@@ -285,9 +287,10 @@ func _physics_process(delta: float) -> void:
 						store_action = false
 						action_buffer.stop()
 						y_dir = saved_y_dir
+					
 			
 			if y_dir != y_input and y_input != 0:
-				if y_input >= 1 or y_input <= -1:
+				if (y_input >= 1 or y_input <= -1) and not change_y_dir:
 					saved_y_dir = y_input
 					chose_dir = false
 					change_y_dir = true
@@ -298,7 +301,7 @@ func _physics_process(delta: float) -> void:
 				accelerate_verticaly(y_dir, delta)
 			
 			#If player jumps while wallride
-			if is_on_wall():
+			if is_on_wall() and not change_y_dir:
 				is_jumping = false
 				if Input.is_action_just_pressed("jump"):
 					chose_dir = false
@@ -313,6 +316,7 @@ func _physics_process(delta: float) -> void:
 				if ray_cast_lower.is_colliding() and not ray_cast_upper.is_colliding():
 					chose_dir = false
 					go_up = true
+					accel_signal_timer.stop()
 				
 				if not ray_cast_lower.is_colliding() and not ray_cast_upper.is_colliding() and go_up:
 					go_up = false
@@ -325,6 +329,7 @@ func _physics_process(delta: float) -> void:
 				if  ray_cast_upper.is_colliding() and not ray_cast_lower.is_colliding():
 					chose_dir = false
 					go_down = true
+					accel_signal_timer.stop()
 				
 				if not ray_cast_lower.is_colliding() and not ray_cast_upper.is_colliding() and go_down:
 					go_down = false
@@ -336,6 +341,7 @@ func _physics_process(delta: float) -> void:
 				if ray_cast_lower.is_colliding() and ray_cast_upper.is_colliding() and is_on_floor():
 					chose_dir = false
 					go_ground = true
+					accel_signal_timer.stop()
 				
 				if go_ground:
 					go_ground = false
@@ -345,6 +351,7 @@ func _physics_process(delta: float) -> void:
 			if is_on_wall():
 				animation_player_lower.play("wallride")
 			
+			#Wall jump while wallride changes and condition
 			if is_jumping: 
 				anchor.scale.x = current_wall_normal
 				animation_player_lower.play("jump")
@@ -421,6 +428,7 @@ func _on_accel_signal_timer_timeout() -> void:
 	
 	if state == states.WALLRIDE:
 		chose_dir = false
+		change_y_dir = false
 		animation_camera.play("SlowDown")
 		exit_wallride = false
 		movement_data = DEFAULT_PLAYER_METRICS
